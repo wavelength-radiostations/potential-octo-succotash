@@ -304,8 +304,17 @@
     viewParam: null,
     offset: 0,
     searchLimit: PAGE_SIZE,
-    renderedUUIDs: new Set()
+    renderedUUIDs: new Set(),
+    reqId: 0
   };
+
+  /* Bumps the active request token. Any in-flight response whose captured
+     id no longer matches state.reqId is stale (superseded by a newer click)
+     and must be discarded instead of rendered. */
+  function newRequest(){
+    state.reqId += 1;
+    return state.reqId;
+  }
 
   /* ---------------- API helper ---------------- */
   function shuffled(list){
@@ -338,17 +347,18 @@
   }
 
   /* ---------------- storage ---------------- */
+  var STORAGE_KEY = "wavelength.favorites";
   function loadFavorites(){
-    if (!window.storage) return Promise.resolve();
-    return window.storage.get("favorites", false).then(function(res){
-      if (res && res.value){
-        try { state.favorites = JSON.parse(res.value) || []; } catch(e){ state.favorites = []; }
-      }
-    }).catch(function(){ /* no favorites saved yet */ });
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) state.favorites = JSON.parse(raw) || [];
+    } catch(e){ /* localStorage unavailable or no favorites saved yet */ }
+    return Promise.resolve();
   }
   function saveFavorites(){
-    if (!window.storage) return;
-    window.storage.set("favorites", JSON.stringify(state.favorites), false).catch(function(){});
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favorites));
+    } catch(e){ /* storage full or unavailable — favorites just won't persist */ }
   }
   function isFavorite(uuid){
     return state.favorites.some(function(s){ return s.stationuuid === uuid; });
@@ -568,16 +578,20 @@
     state.view = "popular";
     state.viewParam = null;
     el.title.textContent = "Popular around the world";
+    var myId;
     if (reset !== false){
+      myId = newRequest();
       resetGrid();
       state.offset = 0;
       showSkeletons(8);
     } else {
+      myId = state.reqId;
       el.loadMoreBtn.disabled = true;
       el.loadMoreBtn.textContent = "Loading…";
     }
     apiGet("/json/stations/search?order=votes&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
       .then(function(list){
+        if (myId !== state.reqId) return;
         if (reset !== false) el.grid.innerHTML = "";
         appendCards(list);
         state.offset += list.length;
@@ -585,12 +599,14 @@
         toggleLoadMore(list.length === PAGE_SIZE);
       })
       .catch(function(){
+        if (myId !== state.reqId) return;
         if (reset !== false){ renderFailure(); }
         else { showToast("Couldn't reach the station directory."); toggleLoadMore(true); }
       });
   }
 
   function loadFavoritesTab(){
+    newRequest(); /* invalidate any in-flight request from the previous view */
     state.view = "favorites";
     state.viewParam = null;
     el.title.textContent = "Your favorites";
@@ -610,7 +626,9 @@
     el.title.textContent = name + " stations";
     el.countryRow.innerHTML = "";
     showSkeletons(8);
+    var myId = newRequest();
     ensureCountries().then(function(countries){
+      if (myId !== state.reqId) return;
       var names = CONTINENTS[name] || [];
       var matches = countries.filter(function(c){
         return names.indexOf(c.name) !== -1 && c.stationcount > 0;
@@ -621,23 +639,30 @@
       }
       renderCountryPills(matches, matches[0].name);
       loadCountry(matches[0].name, true);
-    }).catch(function(){ renderFailure(); });
+    }).catch(function(){
+      if (myId !== state.reqId) return;
+      renderFailure();
+    });
   }
 
   function loadCountry(name, reset){
     state.view = "country";
     state.viewParam = name;
     el.title.textContent = name + " stations";
+    var myId;
     if (reset !== false){
+      myId = newRequest();
       resetGrid();
       state.offset = 0;
       showSkeletons(8);
     } else {
+      myId = state.reqId;
       el.loadMoreBtn.disabled = true;
       el.loadMoreBtn.textContent = "Loading…";
     }
     apiGet("/json/stations/search?countryExact=" + encodeURIComponent(name) + "&order=clickcount&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
       .then(function(list){
+        if (myId !== state.reqId) return;
         if (reset !== false) el.grid.innerHTML = "";
         appendCards(list);
         state.offset += list.length;
@@ -645,6 +670,7 @@
         toggleLoadMore(list.length === PAGE_SIZE);
       })
       .catch(function(){
+        if (myId !== state.reqId) return;
         if (reset !== false){ renderFailure(); }
         else { showToast("Couldn't reach the station directory."); toggleLoadMore(true); }
       });
@@ -676,17 +702,21 @@
     state.view = "search";
     state.viewParam = query;
     el.title.textContent = 'Results for "' + query + '"';
+    var myId;
     if (!isLoadMore){
+      myId = newRequest();
       resetGrid();
       state.searchLimit = PAGE_SIZE;
       showSkeletons(8);
     } else {
+      myId = state.reqId;
       state.searchLimit += PAGE_SIZE;
       el.loadMoreBtn.disabled = true;
       el.loadMoreBtn.textContent = "Loading…";
     }
     var before = state.renderedUUIDs.size;
     fetchSearchBatch(query, state.searchLimit).then(function(list){
+      if (myId !== state.reqId) return;
       if (!isLoadMore) el.grid.innerHTML = "";
       appendCards(list);
       maybeShowEmpty();
@@ -698,6 +728,7 @@
         toggleLoadMore(true);
       }
     }).catch(function(){
+      if (myId !== state.reqId) return;
       if (!isLoadMore){ renderFailure(); }
       else { showToast("Couldn't reach the station directory."); toggleLoadMore(true); }
     });
