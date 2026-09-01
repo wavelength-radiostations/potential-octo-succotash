@@ -22,6 +22,18 @@
     --line:rgba(237,234,227,0.09);
     --radius:10px;
   }
+  :root[data-theme="light"]{
+    --ink:#f4f1ea;
+    --panel:#ffffff;
+    --panel-hover:#efe9dd;
+    --amber:#b8721c;
+    --amber-dim:rgba(184,114,28,0.14);
+    --green:#2f9d5c;
+    --danger:#c0503a;
+    --paper:#201d16;
+    --muted:#767155;
+    --line:rgba(32,29,22,0.1);
+  }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
@@ -30,6 +42,7 @@
     font-family:'Space Grotesk',sans-serif;
     min-height:100vh;
     padding-bottom:96px;
+    transition:background .25s ease,color .25s ease;
   }
   a{color:inherit;}
   button{font-family:inherit;cursor:pointer;}
@@ -55,7 +68,7 @@
     padding:2px 6px;cursor:pointer;letter-spacing:0.02em;
   }
   .clock__select:focus{outline:1px solid var(--amber);}
-  .clock__select option{background:#14110d;color:var(--paper);}
+  .clock__select option{background:var(--panel);color:var(--paper);}
   .search input{
     width:240px;max-width:60vw;
     background:var(--panel);border:1px solid var(--line);color:var(--paper);
@@ -84,6 +97,12 @@
     transition:left .28s cubic-bezier(.4,0,.2,1);
   }
   .dial__countries{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:6px;min-height:34px;}
+  .dial__genres{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-bottom:6px;}
+  .dial__genres:empty{display:none;}
+  .dial__genres-label{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.05em;margin-right:2px;
+  }
   .pill{
     background:var(--panel);border:1px solid transparent;color:var(--muted);
     padding:6px 13px;border-radius:16px;font-size:12.5px;font-family:'IBM Plex Mono',monospace;
@@ -91,6 +110,7 @@
   }
   .pill:hover{color:var(--paper);background:var(--panel-hover);}
   .pill.is-active{color:var(--amber);background:var(--amber-dim);}
+  .pill--tag.is-active{color:var(--green);background:rgba(111,207,151,0.14);}
 
   /* ---------- stations ---------- */
   .stations{padding:20px 0 40px;}
@@ -132,6 +152,8 @@
     border:1px solid var(--line);border-radius:10px;padding:2px 8px;background:none;
     transition:color .15s ease,border-color .15s ease;}
   .card__tag:hover{color:var(--amber);border-color:var(--amber);}
+  .card__tag--country{color:var(--green);border-color:rgba(111,207,151,0.35);}
+  .card__tag--country:hover{color:var(--green);border-color:var(--green);}
   .card__star{background:none;border:none;color:var(--muted);font-size:16px;flex:none;padding:2px;line-height:1;}
   .card__star.is-fav{color:var(--amber);}
 
@@ -187,6 +209,49 @@
     .header__tagline{display:none;}
   }
 
+  /* ---------- settings ---------- */
+  .settings-btn{
+    background:none;border:1px solid var(--line);color:var(--paper);
+    width:34px;height:34px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    transition:color .15s ease,border-color .15s ease,transform .15s ease;
+  }
+  .settings-btn:hover{color:var(--amber);border-color:var(--amber);}
+  .settings-btn.is-open{color:var(--amber);border-color:var(--amber);transform:rotate(35deg);}
+
+  .settings-panel{
+    position:fixed;top:66px;right:24px;width:270px;max-width:calc(100vw - 32px);
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;z-index:30;box-shadow:0 16px 40px rgba(0,0,0,0.35);
+    opacity:0;transform:translateY(-8px);pointer-events:none;
+    transition:opacity .18s ease,transform .18s ease,background .25s ease,border-color .25s ease;
+  }
+  .settings-panel.is-open{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .settings-panel__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .settings-panel__head h3{margin:0;font-size:15px;font-weight:600;}
+  .settings-panel__close{background:none;border:none;color:var(--muted);font-size:15px;padding:2px;line-height:1;}
+  .settings-panel__close:hover{color:var(--paper);}
+  .settings-section{margin-bottom:16px;}
+  .settings-section:last-child{margin-bottom:0;}
+  .settings-section__label{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;display:block;
+  }
+  .theme-toggle{display:flex;gap:6px;}
+  .theme-toggle button{
+    flex:1;background:none;border:1px solid var(--line);color:var(--muted);
+    padding:9px 0 8px;border-radius:8px;font-size:12px;font-weight:500;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    transition:color .15s ease,border-color .15s ease,background .15s ease;
+  }
+  .theme-toggle button span{font-size:15px;}
+  .theme-toggle button:hover{color:var(--paper);border-color:rgba(237,234,227,0.25);}
+  .theme-toggle button.is-active{color:var(--ink);background:var(--amber);border-color:var(--amber);}
+  .theme-toggle button.is-active:hover{color:var(--ink);}
+  .settings-volume{display:flex;align-items:center;gap:10px;}
+  .settings-volume input{flex:1;accent-color:var(--amber);}
+  .settings-volume span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);width:36px;text-align:right;}
+
   /* ---------- toast ---------- */
   .toast{
     position:fixed;left:50%;bottom:90px;transform:translate(-50%,12px);
@@ -214,6 +279,12 @@
       <div class="search">
         <input id="searchInput" type="text" placeholder="Search a station, city, or genre" autocomplete="off" />
       </div>
+      <button class="settings-btn" id="settingsBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Settings" title="Settings">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -221,6 +292,7 @@
     <div class="dial__track" id="dialTrack"></div>
     <div class="dial__ruler"><span id="dialNeedle"></span></div>
     <div class="dial__countries" id="countryRow"></div>
+    <div class="dial__genres" id="genreRow"></div>
   </section>
 
   <main class="stations">
@@ -252,6 +324,27 @@
   <input class="player__volume" id="volume" type="range" min="0" max="100" value="80" aria-label="Volume" />
 </div>
 
+<div class="settings-panel" id="settingsPanel" role="dialog" aria-label="Settings">
+  <div class="settings-panel__head">
+    <h3>Settings</h3>
+    <button class="settings-panel__close" id="settingsClose" type="button" aria-label="Close settings">✕</button>
+  </div>
+  <div class="settings-section">
+    <span class="settings-section__label">Appearance</span>
+    <div class="theme-toggle">
+      <button type="button" id="themeDarkBtn" data-theme-choice="dark"><span>🌙</span>Evening</button>
+      <button type="button" id="themeLightBtn" data-theme-choice="light"><span>☀️</span>Daylight</button>
+    </div>
+  </div>
+  <div class="settings-section">
+    <span class="settings-section__label">Volume</span>
+    <div class="settings-volume">
+      <input type="range" id="settingsVolume" min="0" max="100" value="80" aria-label="Volume" />
+      <span id="settingsVolumeVal">80%</span>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <audio id="audio" preload="none"></audio>
 
@@ -281,6 +374,7 @@
     dialTrack: document.getElementById("dialTrack"),
     dialNeedle: document.getElementById("dialNeedle"),
     countryRow: document.getElementById("countryRow"),
+    genreRow: document.getElementById("genreRow"),
     grid: document.getElementById("grid"),
     title: document.getElementById("stationsTitle"),
     count: document.getElementById("stationsCount"),
@@ -298,7 +392,14 @@
     audio: document.getElementById("audio"),
     toast: document.getElementById("toast"),
     loadMoreBtn: document.getElementById("loadMoreBtn"),
-    loadMoreWrap: document.getElementById("loadMoreWrap")
+    loadMoreWrap: document.getElementById("loadMoreWrap"),
+    settingsBtn: document.getElementById("settingsBtn"),
+    settingsPanel: document.getElementById("settingsPanel"),
+    settingsClose: document.getElementById("settingsClose"),
+    themeDarkBtn: document.getElementById("themeDarkBtn"),
+    themeLightBtn: document.getElementById("themeLightBtn"),
+    settingsVolume: document.getElementById("settingsVolume"),
+    settingsVolumeVal: document.getElementById("settingsVolumeVal")
   };
 
   var PAGE_SIZE = 40;
@@ -307,6 +408,9 @@
     activeTab: "Popular",
     countries: [],
     countriesLoaded: false,
+    genres: [],
+    genresLoaded: false,
+    activeGenre: null,
     favorites: [],
     current: null,
     isPlaying: false,
@@ -464,6 +568,44 @@
     el.clockTime.textContent = pad(getH) + ":" + pad(getM) + ":" + pad(getS);
   }
 
+  /* ---------------- theme ---------------- */
+  var THEME_STORAGE_KEY = "wavelength.theme";
+  function applyTheme(theme){
+    if (theme === "light"){
+      document.documentElement.setAttribute("data-theme", "light");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+      theme = "dark";
+    }
+    el.themeDarkBtn.classList.toggle("is-active", theme === "dark");
+    el.themeLightBtn.classList.toggle("is-active", theme === "light");
+    try { window.localStorage.setItem(THEME_STORAGE_KEY, theme); } catch(e){ /* storage unavailable */ }
+  }
+  function loadTheme(){
+    var saved = "dark";
+    try { saved = window.localStorage.getItem(THEME_STORAGE_KEY) || "dark"; } catch(e){}
+    applyTheme(saved);
+  }
+
+  /* ---------------- settings panel ---------------- */
+  function openSettings(){
+    el.settingsPanel.classList.add("is-open");
+    el.settingsBtn.classList.add("is-open");
+    el.settingsBtn.setAttribute("aria-expanded", "true");
+  }
+  function closeSettings(){
+    el.settingsPanel.classList.remove("is-open");
+    el.settingsBtn.classList.remove("is-open");
+    el.settingsBtn.setAttribute("aria-expanded", "false");
+  }
+  function setVolume(value){
+    var v = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+    el.audio.volume = v / 100;
+    el.volume.value = v;
+    el.settingsVolume.value = v;
+    el.settingsVolumeVal.textContent = v + "%";
+  }
+
   /* ---------------- rendering: dial ---------------- */
   function renderTabs(){
     el.dialTrack.innerHTML = "";
@@ -496,6 +638,52 @@
         loadCountry(c.name);
       });
       el.countryRow.appendChild(btn);
+    });
+  }
+
+  function renderGenrePills(list){
+    el.genreRow.innerHTML = "";
+    if (!list.length) return;
+    var label = document.createElement("span");
+    label.className = "dial__genres-label";
+    label.textContent = "Genre";
+    el.genreRow.appendChild(label);
+
+    var allBtn = document.createElement("button");
+    allBtn.className = "pill pill--tag" + (state.activeGenre === null ? " is-active" : "");
+    allBtn.textContent = "All genres";
+    allBtn.addEventListener("click", function(){ selectGenre(null); });
+    el.genreRow.appendChild(allBtn);
+
+    list.forEach(function(t){
+      var btn = document.createElement("button");
+      btn.className = "pill pill--tag" + (t.name === state.activeGenre ? " is-active" : "");
+      btn.textContent = capitalize(t.name) + " (" + t.stationcount + ")";
+      btn.addEventListener("click", function(){ selectGenre(t.name); });
+      el.genreRow.appendChild(btn);
+    });
+  }
+
+  function selectGenre(tagName){
+    if (state.activeGenre === tagName) return;
+    state.activeGenre = tagName;
+    var match = null;
+    Array.prototype.forEach.call(el.genreRow.children, function(p){
+      p.classList.remove("is-active");
+      if (match) return;
+      var isMatch = tagName === null ? p.textContent === "All genres" : p.textContent.indexOf(capitalize(tagName)) === 0;
+      if (isMatch) match = p;
+    });
+    if (match) match.classList.add("is-active");
+    if (state.view === "country" && state.viewParam) loadCountry(state.viewParam, true);
+  }
+
+  function ensureGenres(){
+    if (state.genresLoaded) return Promise.resolve(state.genres);
+    return apiGet("/json/tags?order=stationcount&reverse=true&limit=24").then(function(list){
+      state.genres = (list || []).filter(function(t){ return t && t.name && t.name.length <= 18; });
+      state.genresLoaded = true;
+      return state.genres;
     });
   }
 
@@ -541,24 +729,34 @@
     var meta = document.createElement("div");
     meta.className = "card__meta";
     var metaBits = [];
-    if (station.country) metaBits.push(station.country);
     if (station.bitrate) metaBits.push(station.bitrate + " kbps");
     meta.textContent = metaBits.join(" · ");
     body.appendChild(name);
     body.appendChild(meta);
 
-    if (station.tags){
+    if (station.country || station.tags){
       var tagRow = document.createElement("div");
       tagRow.className = "card__tags";
-      station.tags.split(",").map(function(t){ return t.trim(); }).filter(Boolean).slice(0, 2).forEach(function(t){
-        var chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "card__tag";
-        chip.textContent = capitalize(t);
-        chip.setAttribute("data-role", "tag");
-        chip.setAttribute("data-tag", t);
-        tagRow.appendChild(chip);
-      });
+      if (station.country){
+        var countryChip = document.createElement("button");
+        countryChip.type = "button";
+        countryChip.className = "card__tag card__tag--country";
+        countryChip.textContent = station.country;
+        countryChip.setAttribute("data-role", "country");
+        countryChip.setAttribute("data-country", station.country);
+        tagRow.appendChild(countryChip);
+      }
+      if (station.tags){
+        station.tags.split(",").map(function(t){ return t.trim(); }).filter(Boolean).slice(0, 2).forEach(function(t){
+          var chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "card__tag";
+          chip.textContent = capitalize(t);
+          chip.setAttribute("data-role", "tag");
+          chip.setAttribute("data-tag", t);
+          tagRow.appendChild(chip);
+        });
+      }
       body.appendChild(tagRow);
     }
 
@@ -583,6 +781,11 @@
       if (role === "tag"){
         e.stopPropagation();
         enterSearchMode(e.target.getAttribute("data-tag"));
+        return;
+      }
+      if (role === "country"){
+        e.stopPropagation();
+        enterCountryMode(e.target.getAttribute("data-country"));
         return;
       }
       playStation(station);
@@ -700,6 +903,8 @@
   function loadContinent(name){
     el.title.textContent = name + " stations";
     el.countryRow.innerHTML = "";
+    el.genreRow.innerHTML = "";
+    state.activeGenre = null;
     showSkeletons(8);
     var myId = newRequest();
     ensureCountries().then(function(countries){
@@ -718,12 +923,16 @@
       if (myId !== state.reqId) return;
       renderFailure();
     });
+    ensureGenres().then(function(tags){
+      if (myId !== state.reqId) return;
+      renderGenrePills(tags);
+    }).catch(function(){ /* genre row just stays empty if this fails */ });
   }
 
   function loadCountry(name, reset){
     state.view = "country";
     state.viewParam = name;
-    el.title.textContent = name + " stations";
+    el.title.textContent = name + (state.activeGenre ? " · " + capitalize(state.activeGenre) : "") + " stations";
     var myId;
     if (reset !== false){
       myId = newRequest();
@@ -735,7 +944,8 @@
       el.loadMoreBtn.disabled = true;
       el.loadMoreBtn.textContent = "Loading…";
     }
-    apiGet("/json/stations/search?countryExact=" + encodeURIComponent(name) + "&order=clickcount&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
+    var tagParam = state.activeGenre ? "&tag=" + encodeURIComponent(state.activeGenre) + "&tagExact=true" : "";
+    apiGet("/json/stations/search?countryExact=true&country=" + encodeURIComponent(name) + tagParam + "&order=clickcount&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
       .then(function(list){
         if (myId !== state.reqId) return;
         if (reset !== false) el.grid.innerHTML = "";
@@ -809,9 +1019,51 @@
     });
   }
 
+  function runCountryFilter(name, isLoadMore){
+    state.view = "countryFilter";
+    state.viewParam = name;
+    el.title.textContent = name + " stations";
+    var myId;
+    if (!isLoadMore){
+      myId = newRequest();
+      resetGrid();
+      state.offset = 0;
+      showSkeletons(8);
+    } else {
+      myId = state.reqId;
+      el.loadMoreBtn.disabled = true;
+      el.loadMoreBtn.textContent = "Loading…";
+    }
+    apiGet("/json/stations/search?countryExact=true&country=" + encodeURIComponent(name) + "&order=clickcount&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
+      .then(function(list){
+        if (myId !== state.reqId) return;
+        if (!isLoadMore) el.grid.innerHTML = "";
+        appendCards(list);
+        state.offset += list.length;
+        maybeShowEmpty();
+        toggleLoadMore(list.length === PAGE_SIZE);
+      })
+      .catch(function(){
+        if (myId !== state.reqId) return;
+        if (!isLoadMore){ renderFailure(); }
+        else { showToast("Couldn't reach the station directory."); toggleLoadMore(true); }
+      });
+  }
+
+  function enterCountryMode(name){
+    el.search.value = "";
+    el.countryRow.innerHTML = "";
+    el.genreRow.innerHTML = "";
+    state.activeGenre = null;
+    Array.prototype.forEach.call(el.dialTrack.children, function(b){ b.classList.remove("is-active"); });
+    runCountryFilter(name, false);
+  }
+
   function enterSearchMode(query){
     el.search.value = query;
     el.countryRow.innerHTML = "";
+    el.genreRow.innerHTML = "";
+    state.activeGenre = null;
     Array.prototype.forEach.call(el.dialTrack.children, function(b){ b.classList.remove("is-active"); });
     runSearch(query, false);
   }
@@ -827,9 +1079,13 @@
     positionNeedle();
     if (tab === "Popular"){
       el.countryRow.innerHTML = "";
+      el.genreRow.innerHTML = "";
+      state.activeGenre = null;
       loadPopular();
     } else if (tab === "Favorites"){
       el.countryRow.innerHTML = "";
+      el.genreRow.innerHTML = "";
+      state.activeGenre = null;
       loadFavoritesTab();
     } else {
       loadContinent(tab);
@@ -926,15 +1182,31 @@
   el.favBtn.addEventListener("click", function(){
     if (state.current) toggleFavorite(state.current);
   });
-  el.volume.addEventListener("input", function(){
-    el.audio.volume = Number(el.volume.value) / 100;
+  el.volume.addEventListener("input", function(){ setVolume(el.volume.value); });
+  el.settingsVolume.addEventListener("input", function(){ setVolume(el.settingsVolume.value); });
+  el.settingsBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    if (el.settingsPanel.classList.contains("is-open")) closeSettings();
+    else openSettings();
+  });
+  el.settingsClose.addEventListener("click", closeSettings);
+  el.themeDarkBtn.addEventListener("click", function(){ applyTheme("dark"); });
+  el.themeLightBtn.addEventListener("click", function(){ applyTheme("light"); });
+  document.addEventListener("click", function(e){
+    if (!el.settingsPanel.classList.contains("is-open")) return;
+    if (el.settingsPanel.contains(e.target) || el.settingsBtn.contains(e.target)) return;
+    closeSettings();
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") closeSettings();
   });
   el.loadMoreBtn.addEventListener("click", function(){
     if (state.view === "popular") loadPopular(false);
     else if (state.view === "country") loadCountry(state.viewParam, false);
+    else if (state.view === "countryFilter") runCountryFilter(state.viewParam, true);
     else if (state.view === "search") runSearch(state.viewParam, true);
   });
-  el.audio.volume = Number(el.volume.value) / 100;
+  setVolume(el.volume.value);
   el.audio.addEventListener("error", function(){
     if (state.current){
       showToast("This signal dropped. Try another frequency.");
@@ -951,6 +1223,8 @@
     searchTimer = setTimeout(function(){
       if (q.length >= 2){
         el.countryRow.innerHTML = "";
+        el.genreRow.innerHTML = "";
+        state.activeGenre = null;
         Array.prototype.forEach.call(el.dialTrack.children, function(b){ b.classList.remove("is-active"); });
         runSearch(q, false);
       } else if (q.length === 0){
@@ -962,6 +1236,7 @@
   window.addEventListener("resize", positionNeedle);
 
   /* ---------------- init ---------------- */
+  loadTheme();
   populateClockOffsets();
   tickClock();
   setInterval(tickClock, 1000);
