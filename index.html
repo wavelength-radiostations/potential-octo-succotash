@@ -152,6 +152,8 @@
     border:1px solid var(--line);border-radius:10px;padding:2px 8px;background:none;
     transition:color .15s ease,border-color .15s ease;}
   .card__tag:hover{color:var(--amber);border-color:var(--amber);}
+  .card__tag--country{color:var(--green);border-color:rgba(111,207,151,0.35);}
+  .card__tag--country:hover{color:var(--green);border-color:var(--green);}
   .card__star{background:none;border:none;color:var(--muted);font-size:16px;flex:none;padding:2px;line-height:1;}
   .card__star.is-fav{color:var(--amber);}
 
@@ -727,24 +729,34 @@
     var meta = document.createElement("div");
     meta.className = "card__meta";
     var metaBits = [];
-    if (station.country) metaBits.push(station.country);
     if (station.bitrate) metaBits.push(station.bitrate + " kbps");
     meta.textContent = metaBits.join(" · ");
     body.appendChild(name);
     body.appendChild(meta);
 
-    if (station.tags){
+    if (station.country || station.tags){
       var tagRow = document.createElement("div");
       tagRow.className = "card__tags";
-      station.tags.split(",").map(function(t){ return t.trim(); }).filter(Boolean).slice(0, 2).forEach(function(t){
-        var chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "card__tag";
-        chip.textContent = capitalize(t);
-        chip.setAttribute("data-role", "tag");
-        chip.setAttribute("data-tag", t);
-        tagRow.appendChild(chip);
-      });
+      if (station.country){
+        var countryChip = document.createElement("button");
+        countryChip.type = "button";
+        countryChip.className = "card__tag card__tag--country";
+        countryChip.textContent = station.country;
+        countryChip.setAttribute("data-role", "country");
+        countryChip.setAttribute("data-country", station.country);
+        tagRow.appendChild(countryChip);
+      }
+      if (station.tags){
+        station.tags.split(",").map(function(t){ return t.trim(); }).filter(Boolean).slice(0, 2).forEach(function(t){
+          var chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "card__tag";
+          chip.textContent = capitalize(t);
+          chip.setAttribute("data-role", "tag");
+          chip.setAttribute("data-tag", t);
+          tagRow.appendChild(chip);
+        });
+      }
       body.appendChild(tagRow);
     }
 
@@ -769,6 +781,11 @@
       if (role === "tag"){
         e.stopPropagation();
         enterSearchMode(e.target.getAttribute("data-tag"));
+        return;
+      }
+      if (role === "country"){
+        e.stopPropagation();
+        enterCountryMode(e.target.getAttribute("data-country"));
         return;
       }
       playStation(station);
@@ -928,7 +945,7 @@
       el.loadMoreBtn.textContent = "Loading…";
     }
     var tagParam = state.activeGenre ? "&tag=" + encodeURIComponent(state.activeGenre) + "&tagExact=true" : "";
-    apiGet("/json/stations/search?countryExact=" + encodeURIComponent(name) + tagParam + "&order=clickcount&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
+    apiGet("/json/stations/search?countryExact=true&country=" + encodeURIComponent(name) + tagParam + "&order=clickcount&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
       .then(function(list){
         if (myId !== state.reqId) return;
         if (reset !== false) el.grid.innerHTML = "";
@@ -1000,6 +1017,46 @@
       if (!isLoadMore){ renderFailure(); }
       else { showToast("Couldn't reach the station directory."); toggleLoadMore(true); }
     });
+  }
+
+  function runCountryFilter(name, isLoadMore){
+    state.view = "countryFilter";
+    state.viewParam = name;
+    el.title.textContent = name + " stations";
+    var myId;
+    if (!isLoadMore){
+      myId = newRequest();
+      resetGrid();
+      state.offset = 0;
+      showSkeletons(8);
+    } else {
+      myId = state.reqId;
+      el.loadMoreBtn.disabled = true;
+      el.loadMoreBtn.textContent = "Loading…";
+    }
+    apiGet("/json/stations/search?countryExact=true&country=" + encodeURIComponent(name) + "&order=clickcount&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
+      .then(function(list){
+        if (myId !== state.reqId) return;
+        if (!isLoadMore) el.grid.innerHTML = "";
+        appendCards(list);
+        state.offset += list.length;
+        maybeShowEmpty();
+        toggleLoadMore(list.length === PAGE_SIZE);
+      })
+      .catch(function(){
+        if (myId !== state.reqId) return;
+        if (!isLoadMore){ renderFailure(); }
+        else { showToast("Couldn't reach the station directory."); toggleLoadMore(true); }
+      });
+  }
+
+  function enterCountryMode(name){
+    el.search.value = "";
+    el.countryRow.innerHTML = "";
+    el.genreRow.innerHTML = "";
+    state.activeGenre = null;
+    Array.prototype.forEach.call(el.dialTrack.children, function(b){ b.classList.remove("is-active"); });
+    runCountryFilter(name, false);
   }
 
   function enterSearchMode(query){
@@ -1146,6 +1203,7 @@
   el.loadMoreBtn.addEventListener("click", function(){
     if (state.view === "popular") loadPopular(false);
     else if (state.view === "country") loadCountry(state.viewParam, false);
+    else if (state.view === "countryFilter") runCountryFilter(state.viewParam, true);
     else if (state.view === "search") runSearch(state.viewParam, true);
   });
   setVolume(el.volume.value);
